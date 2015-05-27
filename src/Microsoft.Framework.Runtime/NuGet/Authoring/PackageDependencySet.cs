@@ -11,8 +11,15 @@ namespace NuGet
 {
     public class PackageDependencySet : IFrameworkTargetable
     {
-        private readonly FrameworkName _targetFramework;
-        private readonly ReadOnlyCollection<PackageDependency> _dependencies;
+        public PackageDependencySet(IEnumerable<PackageDependency> dependencies)
+        {
+            if (dependencies == null)
+            {
+                throw new ArgumentNullException(nameof(dependencies));
+            }
+
+            Dependencies = new ReadOnlyCollection<PackageDependency>(dependencies.ToList());
+        }
 
         public PackageDependencySet(FrameworkName targetFramework, IEnumerable<PackageDependency> dependencies)
         {
@@ -21,25 +28,28 @@ namespace NuGet
                 throw new ArgumentNullException(nameof(dependencies));
             }
 
-            _targetFramework = targetFramework;
-            _dependencies = new ReadOnlyCollection<PackageDependency>(dependencies.ToList());
+            TargetFramework = targetFramework;
+            Dependencies = new ReadOnlyCollection<PackageDependency>(dependencies.ToList());
         }
 
-        public FrameworkName TargetFramework
+        public PackageDependencySet(string targetFramework, IEnumerable<PackageDependency> dependencies)
         {
-            get
+            if (dependencies == null)
             {
-                return _targetFramework;
+                throw new ArgumentNullException(nameof(dependencies));
             }
+
+            if (targetFramework != null)
+            {
+                TargetFramework = VersionUtility.ParseFrameworkName(targetFramework);
+            }
+            
+            Dependencies = new ReadOnlyCollection<PackageDependency>(dependencies.ToList());
         }
 
-        public ICollection<PackageDependency> Dependencies
-        {
-            get
-            {
-                return _dependencies;
-            }
-        }
+        public FrameworkName TargetFramework { get; }
+
+        public ICollection<PackageDependency> Dependencies { get; }
 
         public IEnumerable<FrameworkName> SupportedFrameworks
         {

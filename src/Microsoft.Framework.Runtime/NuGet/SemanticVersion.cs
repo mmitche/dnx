@@ -13,14 +13,12 @@ namespace NuGet
     /// </summary>
     public sealed class SemanticVersion : IComparable, IComparable<SemanticVersion>, IEquatable<SemanticVersion>
     {
-        private readonly string _originalString;
-
         public SemanticVersion(string version)
             : this(Parse(version))
         {
             // The constructor normalizes the version string so that it we do not need to normalize it every time we need to operate on it. 
             // The original string represents the original form in which the version is represented to be used when printing.
-            _originalString = version;
+            OriginalString = version;
         }
 
         public SemanticVersion(int major, int minor, int build, int revision)
@@ -51,12 +49,12 @@ namespace NuGet
             }
             Version = NormalizeVersionValue(version);
             SpecialVersion = specialVersion ?? String.Empty;
-            _originalString = String.IsNullOrEmpty(originalString) ? version.ToString() + (!String.IsNullOrEmpty(specialVersion) ? '-' + specialVersion : null) : originalString;
+            OriginalString = String.IsNullOrEmpty(originalString) ? version.ToString() + (!String.IsNullOrEmpty(specialVersion) ? '-' + specialVersion : null) : originalString;
         }
 
         internal SemanticVersion(SemanticVersion semVer)
         {
-            _originalString = semVer.ToString();
+            OriginalString = semVer.ToString();
             Version = semVer.Version;
             SpecialVersion = semVer.SpecialVersion;
         }
@@ -78,23 +76,25 @@ namespace NuGet
             get;
             private set;
         }
+        
+        public string OriginalString { get; }
 
         public string[] GetOriginalVersionComponents()
         {
-            if (!String.IsNullOrEmpty(_originalString))
+            if (!String.IsNullOrEmpty(OriginalString))
             {
                 string original;
 
                 // search the start of the SpecialVersion part, if any
-                int dashIndex = _originalString.IndexOf('-');
+                int dashIndex = OriginalString.IndexOf('-');
                 if (dashIndex != -1)
                 {
                     // remove the SpecialVersion part
-                    original = _originalString.Substring(0, dashIndex);
+                    original = OriginalString.Substring(0, dashIndex);
                 }
                 else
                 {
-                    original = _originalString;
+                    original = OriginalString;
                 }
 
                 return SplitAndPadVersionString(original);
@@ -310,7 +310,7 @@ namespace NuGet
 
         public override string ToString()
         {
-            return _originalString;
+            return OriginalString;
         }
 
         public bool Equals(SemanticVersion other)
