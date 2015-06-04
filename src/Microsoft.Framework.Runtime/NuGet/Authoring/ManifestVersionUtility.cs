@@ -30,19 +30,19 @@ namespace NuGet
                 if (_metadataPropertyNames == null)
                 {
                     _metadataPropertyNames = new HashSet<string>();
-                    
+
                     _metadataPropertyNames.AddRange(
                         typeof(IPackageMetadata).GetRuntimeProperties()
                                                 .Where(prop => prop.GetMethod != null)
-                                                .Select(prop=>prop.Name));
+                                                .Select(prop => prop.Name));
 
-                    
+
                     _metadataPropertyNames.AddRange(
                         typeof(IPackageName).GetRuntimeProperties()
                                             .Where(prop => prop.GetMethod != null)
-                                            .Select(prop=>prop.Name));
+                                            .Select(prop => prop.Name));
                 }
-                
+
                 return _metadataPropertyNames;
             }
         }
@@ -68,7 +68,7 @@ namespace NuGet
                 return TargetFrameworkSupportForDependencyContentsAndToolsVersion;
             }
 
-            if (metadata.Version != null && !string.IsNullOrEmpty(metadata.Version.SpecialVersion))
+            if (!string.IsNullOrEmpty(metadata.Version?.SpecialVersion))
             {
                 return SemverVersion;
             }
@@ -86,7 +86,7 @@ namespace NuGet
                        .Max()
                       ?? DefaultVersion;
         }
-        
+
         private static int GetVersionFromPropertyInfo(object obj, PropertyInfo property)
         {
             if (!MetadataPropertyNames.Contains(property.Name))
@@ -113,7 +113,7 @@ namespace NuGet
                 {
                     return version.Value;
                 }
-                
+
                 return DefaultVersion;
             }
 

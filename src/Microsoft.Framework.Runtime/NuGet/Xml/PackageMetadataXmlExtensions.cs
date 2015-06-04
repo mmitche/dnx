@@ -22,16 +22,15 @@ namespace NuGet.Xml
 
         public static XElement ToXElement(this ManifestMetadata metadata, XNamespace ns)
         {
-            var elem = new XElement(ns + "metadata");
-            elem.SetAttributeValue(ns + "minClientVersion", metadata.MinClientVersionString);
+            var elem = new XElement(ns + "metadata",
+                new XAttribute("minClientVersion", metadata.MinClientVersionString));
 
             elem.Add(new XElement(ns + "id", metadata.Id));
             elem.Add(new XElement(ns + "version", metadata.Version.OriginalString));
             AddElementIfNotNull(elem, ns, "title", metadata.Title);
             elem.Add(new XElement(ns + "requireLicenseAcceptance", metadata.RequireLicenseAcceptance));
             AddElementIfNotNull(elem, ns, "authors", metadata.Authors, authors => string.Join(",", authors));
-            AddElementIfNotNull(elem, ns, "owners", (metadata.Owners != null && metadata.Owners.Any()) ? metadata.Owners : metadata.Authors,
-                                                    owners => string.Join(",", owners));
+            AddElementIfNotNull(elem, ns, "owners", metadata.Owners, owners => string.Join(",", owners));
             AddElementIfNotNull(elem, ns, "licenseUrl", metadata.LicenseUrl);
             AddElementIfNotNull(elem, ns, "projectUrl", metadata.ProjectUrl);
             AddElementIfNotNull(elem, ns, "iconUrl", metadata.IconUrl);
@@ -74,15 +73,13 @@ namespace NuGet.Xml
             Func<TSet, string> getGroupIdentifer,
             Func<TSet, IEnumerable<TItem>> getItems,
             Func<XNamespace, TItem, XElement> getXElementFromItem,
-            string elementRootName,
+            string parentName,
             string identiferAttributeName)
         {
             if (objectSets == null || objectSets.IsEmpty())
             {
                 return null;
             }
-
-            var result = new XElement(ns + elementRootName);
 
             var groupableSets = new List<TSet>();
             var ungroupableSets = new List<TSet>();
@@ -123,28 +120,19 @@ namespace NuGet.Xml
                 }
             }
 
-            return new XElement(ns + elementRootName, childElements.ToArray());
+            return new XElement(ns + parentName, childElements.ToArray());
         }
 
         private static XElement GetXElementFromPackageReference(XNamespace ns, string reference)
         {
-            var element = new XElement(ns + Reference);
-            element.SetAttributeValue(File, reference);
-
-            return element;
+            return new XElement(ns + Reference, new XAttribute(File, reference));
         }
 
         private static XElement GetXElementFromPackageDependency(XNamespace ns, PackageDependency dependency)
         {
-            var result = new XElement(ns + "dependency");
-            result.SetAttributeValue("id", dependency.Id);
-
-            if (dependency.VersionSpec != null)
-            {
-                result.SetAttributeValue("version", dependency.VersionSpec.ToString());
-            }
-
-            return result;
+            return new XElement(ns + "dependency",
+                new XAttribute("id", dependency.Id),
+                dependency.VersionSpec != null ? new XAttribute("version", dependency.VersionSpec.ToString()) : null);
         }
 
         private static XElement GetXElementFromFrameworkAssemblies(XNamespace ns, IEnumerable<FrameworkAssemblyReference> references)
@@ -157,19 +145,11 @@ namespace NuGet.Xml
             return new XElement(
                 ns + FrameworkAssemblies,
                 references.Select(reference =>
-                {
-                    var element = new XElement(ns + FrameworkAssembly);
-                    element.SetAttributeValue(AssemblyName, reference.AssemblyName);
-
-                    if (reference.SupportedFrameworks != null && reference.SupportedFrameworks.Any())
-                    {
-                        element.SetAttributeValue(
-                            "targetFramework",
-                            string.Join(", ", reference.SupportedFrameworks.Select(VersionUtility.GetFrameworkString)));
-                    }
-
-                    return element;
-                }).ToArray());
+                    new XElement(ns + FrameworkAssembly,
+                        new XAttribute(AssemblyName, reference.AssemblyName),
+                        reference.SupportedFrameworks != null && reference.SupportedFrameworks.Any() ?
+                            new XAttribute("targetFramework", string.Join(", ", reference.SupportedFrameworks.Select(VersionUtility.GetFrameworkString))) :
+                            null)));
         }
 
         private static void AddElementIfNotNull<T>(XElement parent, XNamespace ns, string name, T value)

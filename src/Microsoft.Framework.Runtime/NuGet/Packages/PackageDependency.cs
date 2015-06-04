@@ -8,23 +8,17 @@ namespace NuGet
     public class PackageDependency
     {
         public PackageDependency(string id, string version)
+            : this(id, string.IsNullOrEmpty(version) ? null : VersionUtility.ParseVersionSpec(version))
         {
-            if (string.IsNullOrEmpty(id))
-            {
-                throw new ArgumentNullException(nameof(id));
-            }
-            
-            Id = id;
-            VersionSpec = string.IsNullOrEmpty(version) ? null : VersionUtility.ParseVersionSpec(version);
         }
 
         public PackageDependency(string id, IVersionSpec versionSpec)
         {
             if (string.IsNullOrEmpty(id))
             {
-                throw new ArgumentNullException(nameof(id));
+                throw new ArgumentException(nameof(id));
             }
-            
+
             Id = id;
             VersionSpec = versionSpec;
         }

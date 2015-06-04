@@ -52,7 +52,7 @@ namespace NuGet
             set
             {
                 Version version = null;
-                if (!string.IsNullOrEmpty(value) && !System.Version.TryParse(value, out version))
+                if (!System.Version.TryParse(value, out version))
                 {
                     throw new InvalidDataException(NuGetResources.Manifest_InvalidMinClientVersion);
                 }
@@ -73,43 +73,13 @@ namespace NuGet
         public IEnumerable<string> Authors
         {
             get { return _authors; }
-            set
-            {
-                if (value == null)
-                {
-                    _authors = Enumerable.Empty<string>();
-                }
-                else
-                {
-                    _authors = value;
-                }
-            }
+            set { _authors = value ?? Enumerable.Empty<string>(); }
         }
 
         public IEnumerable<string> Owners
         {
-            get
-            {
-                if (_owners == null || _owners.IsEmpty())
-                {
-                    return _authors;
-                }
-                else
-                {
-                    return _owners;
-                }
-            }
-            set
-            {
-                if (value == null)
-                {
-                    _owners = Enumerable.Empty<string>();
-                }
-                else
-                {
-                    _owners = value;
-                }
-            }
+            get { return (_owners == null || _owners.IsEmpty()) ? _authors : _owners; }
+            set { _owners = value ?? Enumerable.Empty<string>(); }
         }
 
         public Uri IconUrl { get; set; }

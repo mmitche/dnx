@@ -13,7 +13,7 @@ namespace NuGet
         {
             if (string.IsNullOrEmpty(assemblyName))
             {
-                throw new ArgumentNullException(nameof(assemblyName));
+                throw new ArgumentException(nameof(assemblyName));
             }
 
             if (supportedFrameworks == null)

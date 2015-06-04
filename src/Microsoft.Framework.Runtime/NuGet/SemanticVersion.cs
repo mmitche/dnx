@@ -32,7 +32,7 @@ namespace NuGet
         }
 
         public SemanticVersion(Version version)
-            : this(version, String.Empty)
+            : this(version, string.Empty)
         {
         }
 
@@ -48,8 +48,8 @@ namespace NuGet
                 throw new ArgumentNullException(nameof(version));
             }
             Version = NormalizeVersionValue(version);
-            SpecialVersion = specialVersion ?? String.Empty;
-            OriginalString = String.IsNullOrEmpty(originalString) ? version.ToString() + (!String.IsNullOrEmpty(specialVersion) ? '-' + specialVersion : null) : originalString;
+            SpecialVersion = specialVersion ?? string.Empty;
+            OriginalString = string.IsNullOrEmpty(originalString) ? version.ToString() + (!string.IsNullOrEmpty(specialVersion) ? '-' + specialVersion : null) : originalString;
         }
 
         internal SemanticVersion(SemanticVersion semVer)
@@ -76,12 +76,12 @@ namespace NuGet
             get;
             private set;
         }
-        
+
         public string OriginalString { get; }
 
         public string[] GetOriginalVersionComponents()
         {
-            if (!String.IsNullOrEmpty(OriginalString))
+            if (!string.IsNullOrEmpty(OriginalString))
             {
                 string original;
 
@@ -127,7 +127,7 @@ namespace NuGet
         /// </summary>
         public static SemanticVersion Parse(string version)
         {
-            if (String.IsNullOrEmpty(version))
+            if (string.IsNullOrEmpty(version))
             {
                 throw new ArgumentNullException(nameof(version));
             }
@@ -135,7 +135,7 @@ namespace NuGet
             SemanticVersion semVer;
             if (!TryParse(version, out semVer))
             {
-                throw new ArgumentException(String.Format(CultureInfo.CurrentCulture, NuGetResources.InvalidVersionString, version), nameof(version));
+                throw new ArgumentException(string.Format(CultureInfo.CurrentCulture, NuGetResources.InvalidVersionString, version), nameof(version));
             }
             return semVer;
         }
@@ -249,8 +249,8 @@ namespace NuGet
                 return result;
             }
 
-            bool empty = String.IsNullOrEmpty(SpecialVersion);
-            bool otherEmpty = String.IsNullOrEmpty(other.SpecialVersion);
+            bool empty = string.IsNullOrEmpty(SpecialVersion);
+            bool otherEmpty = string.IsNullOrEmpty(other.SpecialVersion);
             if (empty && otherEmpty)
             {
                 return 0;

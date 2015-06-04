@@ -19,37 +19,30 @@ namespace NuGet
 
         public static Manifest ReadManifest(XDocument document)
         {
-            var metadataElement = document.Root.ElementsNoNamespace("metadata").FirstOrDefault();
+            var schemaNamespace = document.Root.GetDefaultNamespace();
+            var metadataElement = document.Root.Elements(schemaNamespace + "metadata").FirstOrDefault();
             if (metadataElement == null)
             {
                 throw new InvalidDataException(
-                    String.Format(CultureInfo.CurrentCulture, NuGetResources.Manifest_RequiredElementMissing, "metadata"));
+                    string.Format(CultureInfo.CurrentCulture, NuGetResources.Manifest_RequiredElementMissing, "metadata"));
             }
 
             return new Manifest(
                 ReadMetadata(metadataElement),
-                ReadFilesList(document.Root.ElementsNoNamespace("files").FirstOrDefault()));
+                ReadFilesList(document.Root.Elements(schemaNamespace + "files").FirstOrDefault()));
         }
 
         private static ManifestMetadata ReadMetadata(XElement xElement)
         {
             var manifestMetadata = new ManifestMetadata();
-
-            manifestMetadata.MinClientVersionString = xElement.GetOptionalAttributeValue("minClientVersion");
+            manifestMetadata.MinClientVersionString = (string)xElement.Attribute("minClientVersion");
 
             // we store all child elements under <metadata> so that we can easily check for required elements.
             var allElements = new HashSet<string>();
 
-            XNode node = xElement.FirstNode;
-            while (node != null)
+            foreach (var element in xElement.Elements())
             {
-                var element = node as XElement;
-                if (element != null)
-                {
-                    ReadMetadataValue(manifestMetadata, element, allElements);
-                }
-
-                node = node.NextNode;
+                ReadMetadataValue(manifestMetadata, element, allElements);
             }
 
             // now check for required elements, which include <id>, <version>, <authors> and <description>
@@ -174,11 +167,10 @@ namespace NuGet
 
         public static IEnumerable<string> ReadReference(XElement referenceElement, bool throwIfEmpty)
         {
-            var references = (from element in referenceElement.ElementsNoNamespace("reference")
-                              let fileAttribute = element.Attribute("file")
-                              where fileAttribute != null && !String.IsNullOrEmpty(fileAttribute.Value)
-                              select fileAttribute.Value?.Trim()
-                             ).ToList();
+            var references = referenceElement.Elements(referenceElement.GetDefaultNamespace() + "reference")
+                                             .Select(element => ((string)element.Attribute("file"))?.Trim())
+                                             .Where(file => file != null)
+                                             .ToList();
 
             if (throwIfEmpty && references.Count == 0)
             {
@@ -195,16 +187,19 @@ namespace NuGet
                 return new List<FrameworkAssemblyReference>(0);
             }
 
-            return (from element in frameworkElement.ElementsNoNamespace("frameworkAssembly")
-                    let assemblyNameAttribute = element.Attribute("assemblyName")
-                    where assemblyNameAttribute != null && !string.IsNullOrEmpty(assemblyNameAttribute.Value)
-                    select new FrameworkAssemblyReference(
-                        assemblyNameAttribute.Value?.Trim(),
-                        element.GetOptionalAttributeValue("targetFramework")?.Trim()
-                                                                            ?.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
-                                                                            ?.Select(VersionUtility.ParseFrameworkName)
-                               ?? Enumerable.Empty<FrameworkName>()))
-                   .ToList();
+            return frameworkElement.Elements(frameworkElement.GetDefaultNamespace() + "frameworkAssembly")
+                                   .Where(element => element.Attribute("assemblyName") != null)
+                                   .Select(element =>
+                                   {
+                                       var assemblyName = ((string)element.Attribute("assemblyName")).Trim();
+                                       var targetFrameworks = ((string)element.Attribute("targetFramework"))
+                                            ?.Trim()
+                                            ?.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                                            ?.Select(VersionUtility.ParseFrameworkName);
+
+                                       return new FrameworkAssemblyReference(assemblyName, targetFrameworks ?? Enumerable.Empty<FrameworkName>());
+                                   })
+                                   .ToList();
         }
 
         private static IEnumerable<PackageDependencySet> ReadDependencySets(XElement dependenciesElement)

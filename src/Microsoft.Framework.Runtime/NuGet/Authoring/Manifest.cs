@@ -23,9 +23,9 @@ namespace NuGet
             {
                 throw new ArgumentNullException(nameof(metadata));
             }
-            
+
             Metadata = metadata;
-            
+
             Files = files?.ToList() ?? new List<ManifestFile>();
         }
 
@@ -62,28 +62,15 @@ namespace NuGet
             int version = Math.Max(minimumManifestVersion, ManifestVersionUtility.GetManifestVersion(Metadata));
             var schemaNamespace = (XNamespace)ManifestSchemaUtility.GetSchemaNamespace(version);
 
-            var root = new XElement(schemaNamespace + "package");
-
-            var metadataElement = Metadata.ToXElement(schemaNamespace);
-            if (metadataElement == null)
-            {
-                throw new InvalidOperationException("Failed to serialize manifest metadata to xml.");
-            }
-            root.Add(metadataElement);
-
-            if (Files != null && Files.Count != 0)
-            {
-                var filesElement = new XElement(schemaNamespace + "files");
-                foreach (var file in Files)
-                {
-                    filesElement.Add(file.ToXElement(schemaNamespace));
-                }
-
-                root.Add(filesElement);
-            }
-
-            var xdoc = new XDocument(root);
-            xdoc.Save(stream);
+            new XDocument(
+                new XElement(schemaNamespace + "package",
+                    Metadata.ToXElement(schemaNamespace),
+                    Files.Any() ?
+                        new XElement(schemaNamespace + "files",
+                            Files.Select(file => new XElement(schemaNamespace + "file",
+                                new XAttribute("src", file.Source),
+                                new XAttribute("target", file.Target),
+                                new XAttribute("exclude", file.Exclude)))) : null)).Save(stream);
         }
 
         public static Manifest ReadFrom(Stream stream, bool validateSchema)

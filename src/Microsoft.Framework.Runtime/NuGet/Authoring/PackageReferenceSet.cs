@@ -15,13 +15,8 @@ namespace NuGet
         private readonly ICollection<string> _references;
 
         public PackageReferenceSet(IEnumerable<string> references)
+            : this(null, references)
         {
-            if (references == null)
-            {
-                throw new ArgumentNullException(nameof(references));
-            }
-
-            _references = new ReadOnlyCollection<string>(references.ToList());
         }
 
         public PackageReferenceSet(FrameworkName targetFramework, IEnumerable<string> references)
