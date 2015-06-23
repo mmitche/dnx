@@ -52,7 +52,7 @@ namespace NuGet
             set
             {
                 Version version = null;
-                if (!System.Version.TryParse(value, out version))
+                if (!string.IsNullOrEmpty(value) && !System.Version.TryParse(value, out version))
                 {
                     throw new InvalidDataException(NuGetResources.Manifest_InvalidMinClientVersion);
                 }

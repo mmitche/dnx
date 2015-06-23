@@ -22,8 +22,11 @@ namespace NuGet.Xml
 
         public static XElement ToXElement(this ManifestMetadata metadata, XNamespace ns)
         {
-            var elem = new XElement(ns + "metadata",
-                new XAttribute("minClientVersion", metadata.MinClientVersionString));
+            var elem = new XElement(ns + "metadata");
+            if (metadata.MinClientVersionString != null)
+            {
+                elem.SetAttributeValue("minClientVersion", metadata.MinClientVersionString);
+            }
 
             elem.Add(new XElement(ns + "id", metadata.Id));
             elem.Add(new XElement(ns + "version", metadata.Version.OriginalString));
