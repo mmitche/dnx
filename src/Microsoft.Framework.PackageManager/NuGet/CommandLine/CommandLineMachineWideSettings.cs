@@ -18,7 +18,7 @@ namespace NuGet
 #if DNX451
             var baseDirectory = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
 #else
-            var baseDirectory = Environment.GetEnvironmentVariable("ProgramData");
+            var baseDirectory = "/usr/local/share/";
 #endif
             _settings = new Lazy<IEnumerable<NuGet.Settings>>(
                 () => NuGet.Settings.LoadMachineWideSettings(
