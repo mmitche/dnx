@@ -107,7 +107,7 @@ namespace NuGet
 #if DNX451
             var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
 #else
-            var appData = Environment.GetEnvironmentVariable("APPDATA");
+            var appData = "/usr/local/share/";
 #endif
             var redirectSettingsPath = Path.Combine(appData,
                                                     "nuget",
@@ -175,7 +175,7 @@ namespace NuGet
 #if DNX451
                 var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
 #else
-                var appDataPath = Environment.GetEnvironmentVariable("APPDATA");
+                var appDataPath = "/usr/local/share/";
 #endif
                 if (!String.IsNullOrEmpty(appDataPath))
                 {
